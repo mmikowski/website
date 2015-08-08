@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+<head>
+  <title>$.extend vs -.extend</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script>
+/*jslint           browser : true,   continue : true,
+ devel   : true,    indent : 2,       maxerr  : 50,
+ newcap  : true,     nomen : true,   plusplus : true,
+ regexp  : true,      vars : false,    white  : true
+ unparam : true,      todo : true
+*/
+/*global jQuery, ao, _, TAFFY*/
+(function ( $ ) {
+  'use strict';
+  var
+    __floor   = Math.floor,
+    __rnd     = Math.random,
+    __char    = String.fromCharCode,
+    loopCount = 100000,
+    objList,
+
+    mkTimeStamp, mkRndInt,
+    mkRndObj,    mkObjList,
+    runTest,     doCompare
+    ;
+
+  mkTimeStamp = function () { return +new Date(); };
+  mkRndInt = function ( range_int, offset_int ) {
+    var result_int = __floor( __rnd() * range_int );
+    if ( ! isNaN( offset_int ) ) { result_int += offset_int; }
+    return result_int;
+  };
+  mkRndObj = function () {
+    var
+      rnd_obj      = {},
+      member_count = mkRndInt( 50, 1 ),
+      idx, rnd_1_char, rnd_2_char;
+
+    for ( idx = 0; idx < member_count; idx++ ) {
+      rnd_1_char = __char( mkRndInt( 74, 48 ) );
+      rnd_2_char = __char( mkRndInt( 74, 48 ) );
+      if ( ! rnd_obj.hasOwnProperty( rnd_1_char ) ) {
+        rnd_obj[ rnd_1_char ] = rnd_2_char;
+      }
+    }
+    return rnd_obj;
+  };
+
+  mkObjList = function () {
+    var 
+      obj_list = [],
+      idx, rnd_obj
+      ;
+    for ( idx = 0; idx < loopCount; idx++ ) {
+      rnd_obj = mkRndObj();
+      obj_list.push( rnd_obj );
+    }
+    return obj_list;
+  };
+
+  runTest = function ( method_fn ) {
+    var result_list = [], idx, result_obj;
+
+    for ( idx = 0; idx < loopCount; idx += 2 ) {
+      result_obj = method_fn( objList[idx], objList[ idx+1 ] );
+      result_list.push( result_obj );
+    }
+  };
+
+  doCompare = function () {
+    var start_ms, end_ms;
+
+    console.log( 'precomputing object list ...' );
+    objList = mkObjList();
+
+    // warm-up
+    console.log( 'warming up ...' );
+    runTest( $.extend );
+    runTest( _.extend );
+
+    console.log( 'running timed tests ...' );
+
+    start_ms = mkTimeStamp();
+    runTest( _.extend );
+    end_ms   = mkTimeStamp();
+    console.log( '_.extend results: ' + ( end_ms - start_ms ) );
+
+    start_ms = mkTimeStamp();
+    runTest( $.extend );
+    end_ms   = mkTimeStamp();
+    console.log( '$.extend results: ' + ( end_ms - start_ms ) );
+  };
+
+  doCompare();
+}( jQuery ));
+
+  </script>
+</head>
+<body>
+  <h1>$.extend() vs _.extend()</h1>
+  <p>Please open your jquery console to see test results.</p>
+</body>
+</html>
